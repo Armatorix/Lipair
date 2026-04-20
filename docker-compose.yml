@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: chessmgr
+      POSTGRES_USER: chessmgr
+      POSTGRES_PASSWORD: chessmgr
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chessmgr"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgres://chessmgr:chessmgr@postgres:5432/chessmgr?sslmode=disable
+      JWT_SECRET: dev-secret-change-in-production
+      SERVER_PORT: "8080"
+      FRONTEND_URL: http://localhost:3000
+      CORS_ORIGINS: http://localhost:3000,http://localhost:80
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URL: http://localhost:8080/api/auth/google/callback
+      LICHESS_CLIENT_ID: ${LICHESS_CLIENT_ID:-}
+      LICHESS_CLIENT_SECRET: ${LICHESS_CLIENT_SECRET:-}
+      LICHESS_REDIRECT_URL: http://localhost:8080/api/auth/lichess/callback
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

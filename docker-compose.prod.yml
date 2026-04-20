@@ -1,0 +1,84 @@
+version: '3.8'
+
+secrets:
+  jwt_secret:
+    external: true
+  google_client_secret:
+    external: true
+  lichess_client_secret:
+    external: true
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: chessmgr
+      POSTGRES_USER: chessmgr
+      POSTGRES_PASSWORD_FILE: /run/secrets/jwt_secret
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    secrets:
+      - jwt_secret
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      placement:
+        constraints:
+          - node.role == manager
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chessmgr"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    image: ghcr.io/armatorix/chessmgr/backend:latest
+    environment:
+      DATABASE_URL: postgres://chessmgr:chessmgr@postgres:5432/chessmgr?sslmode=disable
+      SERVER_PORT: "8080"
+      FRONTEND_URL: ${FRONTEND_URL:-https://chessmgr.example.com}
+      CORS_ORIGINS: ${CORS_ORIGINS:-https://chessmgr.example.com}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_REDIRECT_URL: ${GOOGLE_REDIRECT_URL:-}
+      LICHESS_CLIENT_ID: ${LICHESS_CLIENT_ID:-}
+      LICHESS_REDIRECT_URL: ${LICHESS_REDIRECT_URL:-}
+    secrets:
+      - jwt_secret
+      - google_client_secret
+      - lichess_client_secret
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: rolling-update
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+    depends_on:
+      - postgres
+
+  frontend:
+    image: ghcr.io/armatorix/chessmgr/frontend:latest
+    ports:
+      - "80:80"
+      - "443:443"
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: rolling-update
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

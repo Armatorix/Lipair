@@ -1,0 +1,763 @@
+openapi: 3.0.3
+info:
+  title: ChessMgr API
+  description: Chess Tournament Manager API
+  version: 1.0.0
+
+servers:
+  - url: /api
+
+security: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 6
+      required:
+        - email
+        - password
+
+    RegisterRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 6
+      required:
+        - name
+        - email
+        - password
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+      required:
+        - token
+        - user
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        google_id:
+          type: string
+        lichess_id:
+          type: string
+        lichess_username:
+          type: string
+        avatar_url:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - created_at
+        - updated_at
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        avatar_url:
+          type: string
+
+    Tournament:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        organizer_id:
+          type: string
+          format: uuid
+        pairing_system:
+          type: string
+          enum: [round_robin, knockout, swiss, scheveningen, manual]
+        status:
+          type: string
+          enum: [draft, registration, active, completed]
+        rounds_count:
+          type: integer
+        time_control:
+          type: string
+        start_date:
+          type: string
+          format: date-time
+        end_date:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - organizer_id
+        - pairing_system
+        - status
+        - created_at
+        - updated_at
+
+    CreateTournamentRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        pairing_system:
+          type: string
+          enum: [round_robin, knockout, swiss, scheveningen, manual]
+        rounds_count:
+          type: integer
+        time_control:
+          type: string
+        start_date:
+          type: string
+          format: date-time
+        end_date:
+          type: string
+          format: date-time
+      required:
+        - name
+        - pairing_system
+
+    UpdateTournamentRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        pairing_system:
+          type: string
+          enum: [round_robin, knockout, swiss, scheveningen, manual]
+        rounds_count:
+          type: integer
+        time_control:
+          type: string
+        start_date:
+          type: string
+          format: date-time
+        end_date:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [draft, registration, active, completed]
+
+    TournamentPlayer:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tournament_id:
+          type: string
+          format: uuid
+        player_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        avatar_url:
+          type: string
+        seed:
+          type: integer
+        rating:
+          type: integer
+        score:
+          type: number
+          format: float
+        joined_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - tournament_id
+        - player_id
+        - name
+        - score
+        - joined_at
+
+    Player:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+        avatar_url:
+          type: string
+        rating:
+          type: integer
+      required:
+        - id
+        - name
+
+    Round:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tournament_id:
+          type: string
+          format: uuid
+        round_number:
+          type: integer
+        status:
+          type: string
+          enum: [pending, active, completed]
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - tournament_id
+        - round_number
+        - status
+        - created_at
+
+    Pairing:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        round_id:
+          type: string
+          format: uuid
+        white_player_id:
+          type: string
+          format: uuid
+        black_player_id:
+          type: string
+          format: uuid
+        white_player_name:
+          type: string
+        black_player_name:
+          type: string
+        result:
+          type: string
+          enum: [white_wins, black_wins, draw, bye, pending]
+        board_number:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - round_id
+        - result
+        - created_at
+        - updated_at
+
+    UpdatePairingRequest:
+      type: object
+      properties:
+        result:
+          type: string
+          enum: [white_wins, black_wins, draw, bye, pending]
+      required:
+        - result
+
+paths:
+  /auth/register:
+    post:
+      summary: Register with email/password
+      tags: [auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/login:
+    post:
+      summary: Login with email/password
+      tags: [auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/google:
+    get:
+      summary: Start Google OAuth flow
+      tags: [auth]
+      responses:
+        '302':
+          description: Redirect to Google
+
+  /auth/google/callback:
+    get:
+      summary: Google OAuth callback
+      tags: [auth]
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: state
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Redirect to frontend with token
+
+  /auth/lichess:
+    get:
+      summary: Start Lichess OAuth flow
+      tags: [auth]
+      responses:
+        '302':
+          description: Redirect to Lichess
+
+  /auth/lichess/callback:
+    get:
+      summary: Lichess OAuth callback
+      tags: [auth]
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: state
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Redirect to frontend with token
+
+  /users/me:
+    get:
+      summary: Get current user
+      tags: [users]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    put:
+      summary: Update current user
+      tags: [users]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /tournaments:
+    get:
+      summary: List tournaments
+      tags: [tournaments]
+      responses:
+        '200':
+          description: List of tournaments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tournament'
+    post:
+      summary: Create tournament
+      tags: [tournaments]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTournamentRequest'
+      responses:
+        '201':
+          description: Created tournament
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tournament'
+
+  /tournaments/{id}:
+    get:
+      summary: Get tournament
+      tags: [tournaments]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Tournament
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tournament'
+    put:
+      summary: Update tournament
+      tags: [tournaments]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTournamentRequest'
+      responses:
+        '200':
+          description: Updated tournament
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tournament'
+    delete:
+      summary: Delete tournament
+      tags: [tournaments]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Deleted
+
+  /tournaments/{id}/start:
+    post:
+      summary: Start tournament
+      tags: [tournaments]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Started tournament
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tournament'
+
+  /tournaments/{id}/players:
+    get:
+      summary: List tournament players
+      tags: [tournaments]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Players
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TournamentPlayer'
+    post:
+      summary: Add player to tournament
+      tags: [tournaments]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                player_id:
+                  type: string
+                name:
+                  type: string
+                rating:
+                  type: integer
+                seed:
+                  type: integer
+              required:
+                - name
+      responses:
+        '201':
+          description: Added player
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TournamentPlayer'
+
+  /tournaments/{id}/players/{playerId}:
+    delete:
+      summary: Remove player from tournament
+      tags: [tournaments]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: playerId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Removed
+
+  /tournaments/{id}/rounds:
+    get:
+      summary: List rounds
+      tags: [rounds]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Rounds
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Round'
+    post:
+      summary: Create next round
+      tags: [rounds]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Created round
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Round'
+
+  /tournaments/{id}/rounds/{roundId}:
+    get:
+      summary: Get round
+      tags: [rounds]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: roundId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Round
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Round'
+
+  /tournaments/{id}/rounds/{roundId}/pairings:
+    get:
+      summary: List pairings for round
+      tags: [rounds]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: roundId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Pairings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Pairing'
+
+  /tournaments/{id}/rounds/{roundId}/pairings/{pairingId}:
+    put:
+      summary: Update pairing result
+      tags: [rounds]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: roundId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: pairingId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePairingRequest'
+      responses:
+        '200':
+          description: Updated pairing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pairing'
