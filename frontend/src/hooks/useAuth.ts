@@ -16,10 +16,13 @@ export function useOAuthCallback() {
   useEffect(() => {
     const token = searchParams.get('token')
     if (token) {
+      // Temporarily set the token so the axios interceptor can use it
+      useAuthStore.setState({ token })
       userApi.getMe().then((res) => {
         setAuth(res.data, token)
         navigate('/dashboard')
       }).catch(() => {
+        useAuthStore.setState({ token: null })
         navigate('/login')
       })
     } else {

@@ -315,7 +315,7 @@ func revertScores(tx *sql.Tx, p model.Pairing, tournamentID string) error {
 	case "bye":
 		if p.WhitePlayerID.Valid {
 			if _, err := tx.Exec(
-				`UPDATE tournament_players SET score = score - 1 WHERE player_id = $1 AND tournament_id = $2`,
+				`UPDATE tournament_players SET score = score - 0.5 WHERE player_id = $1 AND tournament_id = $2`,
 				p.WhitePlayerID.String, tournamentID,
 			); err != nil {
 				return err
@@ -365,7 +365,7 @@ func applyScores(tx *sql.Tx, p model.Pairing, tournamentID string) error {
 	case "bye":
 		if p.WhitePlayerID.Valid {
 			if _, err := tx.Exec(
-				`UPDATE tournament_players SET score = score + 1 WHERE player_id = $1 AND tournament_id = $2`,
+				`UPDATE tournament_players SET score = score + 0.5 WHERE player_id = $1 AND tournament_id = $2`,
 				p.WhitePlayerID.String, tournamentID,
 			); err != nil {
 				return err
