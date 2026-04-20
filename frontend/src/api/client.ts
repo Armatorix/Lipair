@@ -27,6 +27,18 @@ apiClient.interceptors.response.use(
   }
 )
 
+export interface User {
+  id: string
+  email?: string
+  name: string
+  google_id?: string
+  lichess_id?: string
+  lichess_username?: string
+  avatar_url?: string
+  created_at: string
+  updated_at: string
+}
+
 export interface Tournament {
   id: string
   name: string
