@@ -522,23 +522,32 @@ func generateRoundRobinPairings(players []model.TournamentPlayer, roundNum int) 
 }
 
 func generateSwissPairings(players []model.TournamentPlayer) []model.Pairing {
-	// Sort by score descending, shuffle within same score group
-	sorted := make([]model.TournamentPlayer, len(players))
-	copy(sorted, players)
-	// Simple Swiss: pair consecutive players by score
-	for i := 0; i < len(sorted)-1; i++ {
-		for j := i + 1; j < len(sorted); j++ {
-			if sorted[j].Score > sorted[i].Score {
-				sorted[i], sorted[j] = sorted[j], sorted[i]
+	// Group players by score
+	scoreGroups := make(map[float64][]model.TournamentPlayer)
+	for _, p := range players {
+		scoreGroups[p.Score] = append(scoreGroups[p.Score], p)
+	}
+	// Collect unique scores and sort descending
+	scores := make([]float64, 0, len(scoreGroups))
+	for s := range scoreGroups {
+		scores = append(scores, s)
+	}
+	for i := 0; i < len(scores)-1; i++ {
+		for j := i + 1; j < len(scores); j++ {
+			if scores[j] > scores[i] {
+				scores[i], scores[j] = scores[j], scores[i]
 			}
 		}
 	}
-	// Within same score, shuffle
-	rand.Shuffle(len(sorted), func(i, j int) {
-		if sorted[i].Score == sorted[j].Score {
-			sorted[i], sorted[j] = sorted[j], sorted[i]
-		}
-	})
+	// Shuffle within each score group and build sorted list
+	var sorted []model.TournamentPlayer
+	for _, s := range scores {
+		group := scoreGroups[s]
+		rand.Shuffle(len(group), func(i, j int) {
+			group[i], group[j] = group[j], group[i]
+		})
+		sorted = append(sorted, group...)
+	}
 
 	var pairings []model.Pairing
 	board := 1

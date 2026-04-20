@@ -229,7 +229,7 @@ func (h *RoundHandler) UpdatePairing(c echo.Context) error {
 
 	// Revert previous score if applicable
 	if p.Result != "pending" {
-		if err := revertScores(tx, p); err != nil {
+		if err := revertScores(tx, p, tournamentID); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to revert scores")
 		}
 	}
@@ -275,34 +275,49 @@ func (h *RoundHandler) UpdatePairing(c echo.Context) error {
 	return c.JSON(http.StatusOK, &p)
 }
 
-func revertScores(tx *sql.Tx, p model.Pairing) error {
+func revertScores(tx *sql.Tx, p model.Pairing, tournamentID string) error {
 	switch p.Result {
 	case "white_wins":
 		if p.WhitePlayerID.Valid {
-			if _, err := tx.Exec(`UPDATE tournament_players SET score = score - 1 WHERE player_id = $1`, p.WhitePlayerID.String); err != nil {
+			if _, err := tx.Exec(
+				`UPDATE tournament_players SET score = score - 1 WHERE player_id = $1 AND tournament_id = $2`,
+				p.WhitePlayerID.String, tournamentID,
+			); err != nil {
 				return err
 			}
 		}
 	case "black_wins":
 		if p.BlackPlayerID.Valid {
-			if _, err := tx.Exec(`UPDATE tournament_players SET score = score - 1 WHERE player_id = $1`, p.BlackPlayerID.String); err != nil {
+			if _, err := tx.Exec(
+				`UPDATE tournament_players SET score = score - 1 WHERE player_id = $1 AND tournament_id = $2`,
+				p.BlackPlayerID.String, tournamentID,
+			); err != nil {
 				return err
 			}
 		}
 	case "draw":
 		if p.WhitePlayerID.Valid {
-			if _, err := tx.Exec(`UPDATE tournament_players SET score = score - 0.5 WHERE player_id = $1`, p.WhitePlayerID.String); err != nil {
+			if _, err := tx.Exec(
+				`UPDATE tournament_players SET score = score - 0.5 WHERE player_id = $1 AND tournament_id = $2`,
+				p.WhitePlayerID.String, tournamentID,
+			); err != nil {
 				return err
 			}
 		}
 		if p.BlackPlayerID.Valid {
-			if _, err := tx.Exec(`UPDATE tournament_players SET score = score - 0.5 WHERE player_id = $1`, p.BlackPlayerID.String); err != nil {
+			if _, err := tx.Exec(
+				`UPDATE tournament_players SET score = score - 0.5 WHERE player_id = $1 AND tournament_id = $2`,
+				p.BlackPlayerID.String, tournamentID,
+			); err != nil {
 				return err
 			}
 		}
 	case "bye":
 		if p.WhitePlayerID.Valid {
-			if _, err := tx.Exec(`UPDATE tournament_players SET score = score - 1 WHERE player_id = $1`, p.WhitePlayerID.String); err != nil {
+			if _, err := tx.Exec(
+				`UPDATE tournament_players SET score = score - 1 WHERE player_id = $1 AND tournament_id = $2`,
+				p.WhitePlayerID.String, tournamentID,
+			); err != nil {
 				return err
 			}
 		}
