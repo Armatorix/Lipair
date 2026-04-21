@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	_ "time/tzdata" // embed timezone data so the binary works without tzdata package installed
 
 	"github.com/Armatorix/ChessMgr/backend/internal/auth"
 	"github.com/Armatorix/ChessMgr/backend/internal/config"
