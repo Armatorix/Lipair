@@ -18,7 +18,7 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     environment:
       DATABASE_URL: postgres://lipair:lipair@postgres:5432/lipair?sslmode=disable
       JWT_SECRET: dev-secret-change-in-production
@@ -37,16 +37,62 @@ services:
       postgres:
         condition: service_healthy
     restart: unless-stopped
+    develop:
+      watch:
+        - action: sync
+          path: ./backend
+          target: /app
+          ignore:
+            - bin/
+            - tmp/
+            - .air.toml
+        - action: sync+restart
+          path: ./backend/.air.toml
+          target: /app/.air.toml
+        - action: rebuild
+          path: ./backend/go.mod
+        - action: rebuild
+          path: ./backend/go.sum
+        - action: rebuild
+          path: ./backend/Dockerfile.dev
 
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
+    environment:
+      API_PROXY_TARGET: http://backend:8080
     ports:
-      - "3000:80"
+      - "3000:5173"
     depends_on:
       - backend
     restart: unless-stopped
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend/src
+          target: /app/src
+        - action: sync
+          path: ./frontend/index.html
+          target: /app/index.html
+        - action: sync
+          path: ./frontend/tailwind.config.js
+          target: /app/tailwind.config.js
+        - action: sync
+          path: ./frontend/postcss.config.js
+          target: /app/postcss.config.js
+        - action: sync+restart
+          path: ./frontend/vite.config.ts
+          target: /app/vite.config.ts
+        - action: sync+restart
+          path: ./frontend/tsconfig.json
+          target: /app/tsconfig.json
+        - action: rebuild
+          path: ./frontend/package.json
+        - action: rebuild
+          path: ./frontend/package-lock.json
+        - action: rebuild
+          path: ./frontend/Dockerfile.dev
 
 volumes:
   postgres_data:
