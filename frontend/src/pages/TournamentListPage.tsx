@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { tournamentApi, Tournament } from '../api/client'
+import { tournamentApi, Tournament, SPORT_OPTIONS } from '../api/client'
+
+const sportMap = Object.fromEntries(SPORT_OPTIONS.map((s) => [s.value, s]))
 
 const statusColors: Record<string, string> = {
   draft: 'bg-gray-100 text-gray-800',
@@ -61,7 +63,12 @@ export default function TournamentListPage() {
               className="bg-white rounded-lg shadow hover:shadow-md transition-shadow p-6 block"
             >
               <div className="flex justify-between items-start mb-3">
-                <h2 className="text-lg font-semibold text-gray-900 truncate flex-1 mr-2">{t.name}</h2>
+                <div className="flex items-center gap-2 flex-1 min-w-0 mr-2">
+                  <span className="text-xl shrink-0" title={sportMap[t.sport_type]?.label}>
+                    {sportMap[t.sport_type]?.icon ?? '🏆'}
+                  </span>
+                  <h2 className="text-lg font-semibold text-gray-900 truncate">{t.name}</h2>
+                </div>
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${statusColors[t.status] || 'bg-gray-100 text-gray-800'}`}>
                   {t.status}
                 </span>
@@ -69,12 +76,17 @@ export default function TournamentListPage() {
               {t.description && (
                 <p className="text-sm text-gray-500 mb-3 line-clamp-2">{t.description}</p>
               )}
-              <div className="flex items-center justify-between">
-                <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-indigo-50 text-indigo-700">
-                  {systemLabels[t.pairing_system] || t.pairing_system}
-                </span>
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700">
+                    {sportMap[t.sport_type]?.label ?? t.sport_type}
+                  </span>
+                  <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-indigo-50 text-indigo-700">
+                    {systemLabels[t.pairing_system] || t.pairing_system}
+                  </span>
+                </div>
                 {t.start_date && (
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-gray-400 whitespace-nowrap">
                     {new Date(t.start_date).toLocaleDateString()}
                   </span>
                 )}

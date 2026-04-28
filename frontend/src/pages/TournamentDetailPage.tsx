@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { tournamentApi, Tournament, TournamentPlayer, Round, Pairing } from '../api/client'
+import { tournamentApi, Tournament, TournamentPlayer, Round, Pairing, SPORT_OPTIONS } from '../api/client'
+
+const sportMap = Object.fromEntries(SPORT_OPTIONS.map((s) => [s.value, s]))
 import { useAuth } from '../hooks/useAuth'
 
 const resultLabels: Record<string, string> = {
@@ -169,6 +171,9 @@ export default function TournamentDetailPage() {
         <div className="flex justify-between items-start">
           <div>
             <div className="flex items-center gap-3 mb-2">
+              <span className="text-2xl" title={sportMap[tournament.sport_type]?.label}>
+                {sportMap[tournament.sport_type]?.icon ?? '🏆'}
+              </span>
               <h1 className="text-2xl font-bold text-gray-900">{tournament.name}</h1>
               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[tournament.status]}`}>
                 {tournament.status}
@@ -177,7 +182,8 @@ export default function TournamentDetailPage() {
             {tournament.description && (
               <p className="text-gray-500 mb-2">{tournament.description}</p>
             )}
-            <div className="flex gap-4 text-sm text-gray-500">
+            <div className="flex gap-4 text-sm text-gray-500 flex-wrap">
+              <span>Sport: {sportMap[tournament.sport_type]?.label ?? tournament.sport_type}</span>
               <span className="capitalize">System: {tournament.pairing_system.replace('_', ' ')}</span>
               {tournament.time_control && <span>Time: {tournament.time_control}</span>}
               {tournament.start_date && (

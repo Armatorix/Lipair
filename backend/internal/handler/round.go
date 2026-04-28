@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"net/http"
 
-	"github.com/Armatorix/ChessMgr/backend/internal/auth"
-	"github.com/Armatorix/ChessMgr/backend/internal/db"
-	"github.com/Armatorix/ChessMgr/backend/internal/model"
+	"github.com/Armatorix/Lipair/backend/internal/auth"
+	"github.com/Armatorix/Lipair/backend/internal/db"
+	"github.com/Armatorix/Lipair/backend/internal/model"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )

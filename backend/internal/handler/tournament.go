@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Armatorix/ChessMgr/backend/internal/auth"
-	"github.com/Armatorix/ChessMgr/backend/internal/db"
-	"github.com/Armatorix/ChessMgr/backend/internal/model"
+	"github.com/Armatorix/Lipair/backend/internal/auth"
+	"github.com/Armatorix/Lipair/backend/internal/db"
+	"github.com/Armatorix/Lipair/backend/internal/model"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -23,7 +23,7 @@ func NewTournamentHandler(db *db.DB) *TournamentHandler {
 
 func (h *TournamentHandler) ListTournaments(c echo.Context) error {
 	rows, err := h.db.Query(
-		`SELECT id, name, description, organizer_id, pairing_system, status, rounds_count, time_control, start_date, end_date, settings, created_at, updated_at
+		`SELECT id, name, description, organizer_id, sport_type, pairing_system, status, rounds_count, time_control, start_date, end_date, settings, created_at, updated_at
 		 FROM tournaments ORDER BY created_at DESC`,
 	)
 	if err != nil {
@@ -35,7 +35,7 @@ func (h *TournamentHandler) ListTournaments(c echo.Context) error {
 	for rows.Next() {
 		var t model.Tournament
 		if err := rows.Scan(
-			&t.ID, &t.Name, &t.Description, &t.OrganizerID, &t.PairingSystem, &t.Status,
+			&t.ID, &t.Name, &t.Description, &t.OrganizerID, &t.SportType, &t.PairingSystem, &t.Status,
 			&t.RoundsCount, &t.TimeControl, &t.StartDate, &t.EndDate, &t.Settings,
 			&t.CreatedAt, &t.UpdatedAt,
 		); err != nil {
@@ -52,6 +52,7 @@ func (h *TournamentHandler) CreateTournament(c echo.Context) error {
 	type createRequest struct {
 		Name          string  `json:"name"`
 		Description   string  `json:"description"`
+		SportType     string  `json:"sport_type"`
 		PairingSystem string  `json:"pairing_system"`
 		RoundsCount   *int    `json:"rounds_count"`
 		TimeControl   string  `json:"time_control"`
@@ -68,16 +69,28 @@ func (h *TournamentHandler) CreateTournament(c echo.Context) error {
 	if req.PairingSystem == "" {
 		req.PairingSystem = "round_robin"
 	}
+	if req.SportType == "" {
+		req.SportType = "chess"
+	}
 
 	validSystems := map[string]bool{"round_robin": true, "knockout": true, "swiss": true, "scheveningen": true, "manual": true}
 	if !validSystems[req.PairingSystem] {
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid pairing system")
+	}
+	validSports := map[string]bool{
+		"chess": true, "checkers": true, "go": true, "shogi": true,
+		"tennis": true, "table_tennis": true, "badminton": true, "squash": true,
+		"pool": true, "darts": true, "foosball": true, "other": true,
+	}
+	if !validSports[req.SportType] {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid sport type")
 	}
 
 	t := model.Tournament{
 		ID:            uuid.New().String(),
 		Name:          req.Name,
 		OrganizerID:   userID,
+		SportType:     req.SportType,
 		PairingSystem: req.PairingSystem,
 		Status:        "draft",
 		Settings:      []byte("{}"),
@@ -107,9 +120,9 @@ func (h *TournamentHandler) CreateTournament(c echo.Context) error {
 	}
 
 	_, err := h.db.Exec(
-		`INSERT INTO tournaments (id, name, description, organizer_id, pairing_system, status, rounds_count, time_control, start_date, end_date, settings, created_at, updated_at)
-		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
-		t.ID, t.Name, nullString(t.Description), t.OrganizerID, t.PairingSystem, t.Status,
+		`INSERT INTO tournaments (id, name, description, organizer_id, sport_type, pairing_system, status, rounds_count, time_control, start_date, end_date, settings, created_at, updated_at)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+		t.ID, t.Name, nullString(t.Description), t.OrganizerID, t.SportType, t.PairingSystem, t.Status,
 		nullInt64(t.RoundsCount), nullString(t.TimeControl), nullTime(t.StartDate), nullTime(t.EndDate),
 		t.Settings, t.CreatedAt, t.UpdatedAt,
 	)
@@ -124,11 +137,11 @@ func (h *TournamentHandler) GetTournament(c echo.Context) error {
 	id := c.Param("id")
 	var t model.Tournament
 	err := h.db.QueryRow(
-		`SELECT id, name, description, organizer_id, pairing_system, status, rounds_count, time_control, start_date, end_date, settings, created_at, updated_at
+		`SELECT id, name, description, organizer_id, sport_type, pairing_system, status, rounds_count, time_control, start_date, end_date, settings, created_at, updated_at
 		 FROM tournaments WHERE id = $1`,
 		id,
 	).Scan(
-		&t.ID, &t.Name, &t.Description, &t.OrganizerID, &t.PairingSystem, &t.Status,
+		&t.ID, &t.Name, &t.Description, &t.OrganizerID, &t.SportType, &t.PairingSystem, &t.Status,
 		&t.RoundsCount, &t.TimeControl, &t.StartDate, &t.EndDate, &t.Settings,
 		&t.CreatedAt, &t.UpdatedAt,
 	)
@@ -162,6 +175,7 @@ func (h *TournamentHandler) UpdateTournament(c echo.Context) error {
 	type updateRequest struct {
 		Name          *string `json:"name"`
 		Description   *string `json:"description"`
+		SportType     *string `json:"sport_type"`
 		PairingSystem *string `json:"pairing_system"`
 		RoundsCount   *int    `json:"rounds_count"`
 		TimeControl   *string `json:"time_control"`
@@ -178,13 +192,14 @@ func (h *TournamentHandler) UpdateTournament(c echo.Context) error {
 		`UPDATE tournaments SET
 			name = COALESCE($1, name),
 			description = CASE WHEN $2::text IS NOT NULL THEN $2::text ELSE description END,
-			pairing_system = COALESCE($3, pairing_system),
-			rounds_count = CASE WHEN $4::int IS NOT NULL THEN $4::int ELSE rounds_count END,
-			time_control = CASE WHEN $5::text IS NOT NULL THEN $5::text ELSE time_control END,
-			status = COALESCE($6, status),
+			sport_type = COALESCE($3, sport_type),
+			pairing_system = COALESCE($4, pairing_system),
+			rounds_count = CASE WHEN $5::int IS NOT NULL THEN $5::int ELSE rounds_count END,
+			time_control = CASE WHEN $6::text IS NOT NULL THEN $6::text ELSE time_control END,
+			status = COALESCE($7, status),
 			updated_at = NOW()
-		 WHERE id = $7`,
-		req.Name, req.Description, req.PairingSystem, req.RoundsCount, req.TimeControl, req.Status, id,
+		 WHERE id = $8`,
+		req.Name, req.Description, req.SportType, req.PairingSystem, req.RoundsCount, req.TimeControl, req.Status, id,
 	)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to update tournament")
@@ -192,11 +207,11 @@ func (h *TournamentHandler) UpdateTournament(c echo.Context) error {
 
 	var updated model.Tournament
 	err = h.db.QueryRow(
-		`SELECT id, name, description, organizer_id, pairing_system, status, rounds_count, time_control, start_date, end_date, settings, created_at, updated_at
+		`SELECT id, name, description, organizer_id, sport_type, pairing_system, status, rounds_count, time_control, start_date, end_date, settings, created_at, updated_at
 		 FROM tournaments WHERE id = $1`,
 		id,
 	).Scan(
-		&updated.ID, &updated.Name, &updated.Description, &updated.OrganizerID, &updated.PairingSystem, &updated.Status,
+		&updated.ID, &updated.Name, &updated.Description, &updated.OrganizerID, &updated.SportType, &updated.PairingSystem, &updated.Status,
 		&updated.RoundsCount, &updated.TimeControl, &updated.StartDate, &updated.EndDate, &updated.Settings,
 		&updated.CreatedAt, &updated.UpdatedAt,
 	)
@@ -235,11 +250,11 @@ func (h *TournamentHandler) StartTournament(c echo.Context) error {
 
 	var t model.Tournament
 	err := h.db.QueryRow(
-		`SELECT id, name, description, organizer_id, pairing_system, status, rounds_count, time_control, start_date, end_date, settings, created_at, updated_at
+		`SELECT id, name, description, organizer_id, sport_type, pairing_system, status, rounds_count, time_control, start_date, end_date, settings, created_at, updated_at
 		 FROM tournaments WHERE id = $1`,
 		id,
 	).Scan(
-		&t.ID, &t.Name, &t.Description, &t.OrganizerID, &t.PairingSystem, &t.Status,
+		&t.ID, &t.Name, &t.Description, &t.OrganizerID, &t.SportType, &t.PairingSystem, &t.Status,
 		&t.RoundsCount, &t.TimeControl, &t.StartDate, &t.EndDate, &t.Settings,
 		&t.CreatedAt, &t.UpdatedAt,
 	)

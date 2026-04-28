@@ -19,8 +19,8 @@ export default function Navbar() {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex items-center space-x-2">
-              <span className="text-2xl">♛</span>
-              <span className="font-bold text-xl text-gray-900">ChessMgr</span>
+              <span className="text-2xl">🏆</span>
+              <span className="font-bold text-xl text-gray-900">Lipair</span>
             </Link>
             <div className="ml-8 flex items-center space-x-4">
               <Link

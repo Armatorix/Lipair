@@ -63,6 +63,7 @@ type Tournament struct {
 	Name          string          `db:"name"`
 	Description   sql.NullString  `db:"description"`
 	OrganizerID   string          `db:"organizer_id"`
+	SportType     string          `db:"sport_type"`
 	PairingSystem string          `db:"pairing_system"`
 	Status        string          `db:"status"`
 	RoundsCount   sql.NullInt64   `db:"rounds_count"`
@@ -81,6 +82,7 @@ func (t Tournament) MarshalJSON() ([]byte, error) {
 		Name          string          `json:"name"`
 		Description   *string         `json:"description,omitempty"`
 		OrganizerID   string          `json:"organizer_id"`
+		SportType     string          `json:"sport_type"`
 		PairingSystem string          `json:"pairing_system"`
 		Status        string          `json:"status"`
 		RoundsCount   *int64          `json:"rounds_count,omitempty"`
@@ -99,6 +101,7 @@ func (t Tournament) MarshalJSON() ([]byte, error) {
 		ID:            t.ID,
 		Name:          t.Name,
 		OrganizerID:   t.OrganizerID,
+		SportType:     t.SportType,
 		PairingSystem: t.PairingSystem,
 		Status:        t.Status,
 		Settings:      settings,

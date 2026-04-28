@@ -1,4 +1,4 @@
-module github.com/Armatorix/ChessMgr/backend
+module github.com/Armatorix/Lipair/backend
 
 go 1.22
 

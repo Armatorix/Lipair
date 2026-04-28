@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { tournamentApi } from '../api/client'
+import { tournamentApi, SPORT_OPTIONS } from '../api/client'
 
 export default function TournamentCreatePage() {
   const navigate = useNavigate()
@@ -10,6 +10,7 @@ export default function TournamentCreatePage() {
   const [form, setForm] = useState({
     name: '',
     description: '',
+    sport_type: 'chess',
     pairing_system: 'round_robin',
     rounds_count: '',
     time_control: '',
@@ -32,6 +33,7 @@ export default function TournamentCreatePage() {
     try {
       const payload: Record<string, unknown> = {
         name: form.name,
+        sport_type: form.sport_type,
         pairing_system: form.pairing_system,
       }
       if (form.description) payload.description = form.description
@@ -88,6 +90,32 @@ export default function TournamentCreatePage() {
             placeholder="Optional description..."
             className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
           />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Sport *
+          </label>
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+            {SPORT_OPTIONS.map((opt) => {
+              const selected = form.sport_type === opt.value
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setForm({ ...form, sport_type: opt.value })}
+                  className={`flex flex-col items-center justify-center px-3 py-2 rounded-md border text-sm transition-colors ${
+                    selected
+                      ? 'bg-indigo-600 border-indigo-600 text-white'
+                      : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  <span className="text-xl leading-none mb-1">{opt.icon}</span>
+                  <span className="text-xs">{opt.label}</span>
+                </button>
+              )
+            })}
+          </div>
         </div>
 
         <div>

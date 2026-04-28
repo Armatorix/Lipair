@@ -76,13 +76,13 @@ frontend-preview: ## Preview the production build locally
 
 # ── Database ─────────────────────────────────────────────────────────────────
 db-shell: ## Open a psql shell to the local database
-	docker compose exec postgres psql -U chessmgr -d chessmgr
+	docker compose exec postgres psql -U lipair -d lipair
 
 db-reset: ## Drop and recreate the local database (WARNING: destroys all data)
 	docker compose down -v
 	docker compose up -d postgres
 	@echo "Waiting for postgres to be healthy..."
-	@until docker compose exec postgres pg_isready -U chessmgr -q 2>/dev/null; do sleep 1; done
+	@until docker compose exec postgres pg_isready -U lipair -q 2>/dev/null; do sleep 1; done
 	@echo "Postgres is ready. Restart the backend to apply migrations."
 
 # ── Code Generation ──────────────────────────────────────────────────────────

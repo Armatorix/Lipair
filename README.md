@@ -1,6 +1,6 @@
-# ChessMgr
+# Lipair
 
-A chess tournament manager platform built with Go (Echo), React, and PostgreSQL.
+A multi-sport tournament setup portal (chess, checkers, go, tennis, table tennis, badminton, and more) built with Go (Echo), React, and PostgreSQL.
 
 ## Features
 
@@ -65,8 +65,8 @@ A chess tournament manager platform built with Go (Echo), React, and PostgreSQL.
 ### 1. Clone and configure
 
 ```bash
-git clone https://github.com/Armatorix/ChessMgr.git
-cd ChessMgr
+git clone https://github.com/Armatorix/Lipair.git
+cd Lipair
 cp .env.example .env
 # Edit .env with your OAuth credentials (optional for basic testing)
 ```
@@ -131,14 +131,14 @@ echo "your-google-client-secret" | docker secret create google_client_secret -
 
 ### 3. Deploy the stack
 ```bash
-export FRONTEND_URL=https://chessmgr.example.com
-export CORS_ORIGINS=https://chessmgr.example.com
+export FRONTEND_URL=https://lipair.example.com
+export CORS_ORIGINS=https://lipair.example.com
 export GOOGLE_CLIENT_ID=your-google-client-id
-export GOOGLE_REDIRECT_URL=https://chessmgr.example.com/api/auth/google/callback
+export GOOGLE_REDIRECT_URL=https://lipair.example.com/api/auth/google/callback
 export LICHESS_CLIENT_ID=your-lichess-client-id
-export LICHESS_REDIRECT_URL=https://chessmgr.example.com/api/auth/lichess/callback
+export LICHESS_REDIRECT_URL=https://lipair.example.com/api/auth/lichess/callback
 
-docker stack deploy -c docker-compose.prod.yml chessmgr
+docker stack deploy -c docker-compose.prod.yml lipair
 ```
 
 ## API Reference
@@ -185,7 +185,7 @@ npx openapi-typescript-codegen --input ../api/openapi.yaml --output src/api/gene
 ```
 
 
-A complete chess tournament management platform supporting multiple pairing systems, OAuth authentication, and real-time score tracking.
+A complete multi-sport tournament management platform supporting multiple pairing systems, OAuth authentication, and real-time score tracking.
 
 ## Tech Stack
 
@@ -212,8 +212,8 @@ A complete chess tournament management platform supporting multiple pairing syst
 
 ```bash
 # Clone the repo
-git clone https://github.com/Armatorix/ChessMgr.git
-cd ChessMgr
+git clone https://github.com/Armatorix/Lipair.git
+cd Lipair
 
 # Copy and configure environment (optional for OAuth)
 cp .env.example .env
@@ -231,7 +231,7 @@ docker compose up --build
 ```bash
 cd backend
 go mod download
-DATABASE_URL="postgres://chessmgr:chessmgr@localhost:5432/chessmgr?sslmode=disable" \
+DATABASE_URL="postgres://lipair:lipair@localhost:5432/lipair?sslmode=disable" \
   JWT_SECRET="local-dev-secret" \
   go run ./cmd/server
 ```
@@ -285,13 +285,13 @@ echo "your-google-secret" | docker secret create google_client_secret -
 echo "your-lichess-secret" | docker secret create lichess_client_secret -
 
 # Deploy stack
-docker stack deploy -c docker-compose.prod.yml chessmgr
+docker stack deploy -c docker-compose.prod.yml lipair
 ```
 
 ## Project Structure
 
 ```
-ChessMgr/
+Lipair/
 ├── api/
 │   └── openapi.yaml          # OpenAPI 3.0 specification
 ├── backend/

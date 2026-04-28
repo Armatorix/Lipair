@@ -12,8 +12,8 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: chessmgr
-      POSTGRES_USER: chessmgr
+      POSTGRES_DB: lipair
+      POSTGRES_USER: lipair
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -29,18 +29,18 @@ services:
         constraints:
           - node.role == manager
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U chessmgr"]
+      test: ["CMD-SHELL", "pg_isready -U lipair"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   backend:
-    image: ghcr.io/armatorix/chessmgr/backend:latest
+    image: ghcr.io/armatorix/lipair/backend:latest
     environment:
-      DATABASE_URL: postgres://chessmgr:chessmgr@postgres:5432/chessmgr?sslmode=disable
+      DATABASE_URL: postgres://lipair:lipair@postgres:5432/lipair?sslmode=disable
       SERVER_PORT: "8080"
-      FRONTEND_URL: ${FRONTEND_URL:-https://chessmgr.example.com}
-      CORS_ORIGINS: ${CORS_ORIGINS:-https://chessmgr.example.com}
+      FRONTEND_URL: ${FRONTEND_URL:-https://lipair.example.com}
+      CORS_ORIGINS: ${CORS_ORIGINS:-https://lipair.example.com}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_REDIRECT_URL: ${GOOGLE_REDIRECT_URL:-}
       LICHESS_CLIENT_ID: ${LICHESS_CLIENT_ID:-}
@@ -63,7 +63,7 @@ services:
       - postgres
 
   frontend:
-    image: ghcr.io/armatorix/chessmgr/frontend:latest
+    image: ghcr.io/armatorix/lipair/frontend:latest
     ports:
       - "80:80"
       - "443:443"

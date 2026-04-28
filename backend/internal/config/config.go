@@ -23,7 +23,7 @@ func Load() *Config {
 	corsOrigins := strings.Split(getEnv("CORS_ORIGINS", "http://localhost:3000"), ",")
 	return &Config{
 		ServerPort:          getEnv("SERVER_PORT", "8080"),
-		DatabaseURL:         getEnv("DATABASE_URL", "postgres://chessmgr:chessmgr@localhost:5432/chessmgr?sslmode=disable"),
+		DatabaseURL:         getEnv("DATABASE_URL", "postgres://lipair:lipair@localhost:5432/lipair?sslmode=disable"),
 		JWTSecret:           getSecret("JWT_SECRET", "/run/secrets/jwt_secret", "change-me-in-production"),
 		GoogleClientID:      getEnv("GOOGLE_CLIENT_ID", ""),
 		GoogleClientSecret:  getSecret("GOOGLE_CLIENT_SECRET", "/run/secrets/google_client_secret", ""),

@@ -5,10 +5,10 @@ import (
 	"net/http"
 	_ "time/tzdata" // embed timezone data so the binary works without tzdata package installed
 
-	"github.com/Armatorix/ChessMgr/backend/internal/auth"
-	"github.com/Armatorix/ChessMgr/backend/internal/config"
-	"github.com/Armatorix/ChessMgr/backend/internal/db"
-	"github.com/Armatorix/ChessMgr/backend/internal/handler"
+	"github.com/Armatorix/Lipair/backend/internal/auth"
+	"github.com/Armatorix/Lipair/backend/internal/config"
+	"github.com/Armatorix/Lipair/backend/internal/db"
+	"github.com/Armatorix/Lipair/backend/internal/handler"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"

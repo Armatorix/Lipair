@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
-  title: ChessMgr API
-  description: Chess Tournament Manager API
+  title: Lipair API
+  description: Lipair multi-sport tournament setup portal API
   version: 1.0.0
 
 servers:
@@ -104,6 +104,23 @@ components:
         avatar_url:
           type: string
 
+    SportType:
+      type: string
+      description: Sport the tournament is played in.
+      enum:
+        - chess
+        - checkers
+        - go
+        - shogi
+        - tennis
+        - table_tennis
+        - badminton
+        - squash
+        - pool
+        - darts
+        - foosball
+        - other
+
     Tournament:
       type: object
       properties:
@@ -117,6 +134,8 @@ components:
         organizer_id:
           type: string
           format: uuid
+        sport_type:
+          $ref: '#/components/schemas/SportType'
         pairing_system:
           type: string
           enum: [round_robin, knockout, swiss, scheveningen, manual]
@@ -143,6 +162,7 @@ components:
         - id
         - name
         - organizer_id
+        - sport_type
         - pairing_system
         - status
         - created_at
@@ -155,6 +175,8 @@ components:
           type: string
         description:
           type: string
+        sport_type:
+          $ref: '#/components/schemas/SportType'
         pairing_system:
           type: string
           enum: [round_robin, knockout, swiss, scheveningen, manual]
@@ -170,6 +192,7 @@ components:
           format: date-time
       required:
         - name
+        - sport_type
         - pairing_system
 
     UpdateTournamentRequest:
@@ -179,6 +202,8 @@ components:
           type: string
         description:
           type: string
+        sport_type:
+          $ref: '#/components/schemas/SportType'
         pairing_system:
           type: string
           enum: [round_robin, knockout, swiss, scheveningen, manual]

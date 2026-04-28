@@ -39,11 +39,41 @@ export interface User {
   updated_at: string
 }
 
+export type SportType =
+  | 'chess'
+  | 'checkers'
+  | 'go'
+  | 'shogi'
+  | 'tennis'
+  | 'table_tennis'
+  | 'badminton'
+  | 'squash'
+  | 'pool'
+  | 'darts'
+  | 'foosball'
+  | 'other'
+
+export const SPORT_OPTIONS: { value: SportType; label: string; icon: string }[] = [
+  { value: 'chess', label: 'Chess', icon: '♛' },
+  { value: 'checkers', label: 'Checkers', icon: '⛀' },
+  { value: 'go', label: 'Go', icon: '⚫' },
+  { value: 'shogi', label: 'Shogi', icon: '将' },
+  { value: 'tennis', label: 'Tennis', icon: '🎾' },
+  { value: 'table_tennis', label: 'Table Tennis', icon: '🏓' },
+  { value: 'badminton', label: 'Badminton', icon: '🏸' },
+  { value: 'squash', label: 'Squash', icon: '🎯' },
+  { value: 'pool', label: 'Pool / Billiards', icon: '🎱' },
+  { value: 'darts', label: 'Darts', icon: '🎯' },
+  { value: 'foosball', label: 'Foosball', icon: '⚽' },
+  { value: 'other', label: 'Other', icon: '🏆' },
+]
+
 export interface Tournament {
   id: string
   name: string
   description?: string
   organizer_id: string
+  sport_type: SportType
   pairing_system: 'round_robin' | 'knockout' | 'swiss' | 'scheveningen' | 'manual'
   status: 'draft' | 'registration' | 'active' | 'completed'
   rounds_count?: number
