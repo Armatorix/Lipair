@@ -1,4 +1,4 @@
-.PHONY: help up down build logs restart \
+.PHONY: help up up-logs watch down build logs restart \
         backend-build backend-run backend-test backend-lint backend-tidy \
         frontend-install frontend-dev frontend-build frontend-lint \
         db-migrate db-reset generate-api
@@ -14,6 +14,9 @@ up: ## Start all services (builds if needed)
 
 up-logs: ## Start all services and follow logs
 	docker compose up --build
+
+watch: ## Start all services with live reload (sync code into running containers)
+	docker compose up --build --watch
 
 down: ## Stop and remove containers
 	docker compose down
